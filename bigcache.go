@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/allegro/bigcache"
+	"github.com/allegro/bigcache/v2"
 	"github.com/labstack/echo/v4"
 
 	"github.com/golang-common-packages/hash"

@@ -1,6 +1,6 @@
 package caching
 
-import "github.com/allegro/bigcache"
+import "github.com/allegro/bigcache/v2"
 
 // Config model for database caching config
 type Config struct {
