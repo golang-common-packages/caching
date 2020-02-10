@@ -18,7 +18,7 @@ type RedisClient struct {
 }
 
 // NewRedis function return redis client based on singleton pattern
-func NewRedis(config *CachingConfig) ICaching {
+func NewRedis(config *Config) ICaching {
 	currentSession := &RedisClient{nil, ""}
 	client, err := currentSession.connect(config.Redis)
 	if err != nil {

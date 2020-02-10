@@ -8,7 +8,7 @@ import (
 	"github.com/golang-common-packages/hash"
 )
 
-// ICaching interface cachestore package
+// ICaching interface caching package
 type ICaching interface {
 	Middleware(hash hash.IHash) echo.MiddlewareFunc
 	Get(key string) (string, error)
@@ -18,13 +18,16 @@ type ICaching interface {
 
 const (
 	REDIS = iota
+	BIGCACHE
 )
 
 // New function for Factory Pattern
-func New(datastoreType int, config *CachingConfig) ICaching {
-	switch datastoreType {
+func New(cachingType int, config *Config) ICaching {
+	switch cachingType {
 	case REDIS:
 		return NewRedis(config)
+	case BIGCACHE:
+		return NewBigCache(config)
 	}
 
 	return nil

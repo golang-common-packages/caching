@@ -1,8 +1,11 @@
 package caching
 
-// CachingConfig model for database caching config
-type CachingConfig struct {
-	Redis Redis `json:"redis,omitempty"`
+import "github.com/allegro/bigcache"
+
+// Config model for database caching config
+type Config struct {
+	Redis    Redis           `json:"redis,omitempty"`
+	BigCache bigcache.Config `json:"bigCache,omitempty"`
 }
 
 // Redis model provide info for redis config
