@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"reflect"
-	"sync"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -15,13 +14,13 @@ import (
 
 // MinimalismClient ...
 type MinimalismClient struct {
-	items sync.Map
+	items *ItemQueue
 	close chan struct{}
 }
 
 // NewMinimalism ...
 func NewMinimalism(config *Config) ICaching {
-	currentSession := &MinimalismClient{nil, make(chan struct{})}
+	currentSession := &MinimalismClient{ItemQueueNew(10 * 1024 * 1024), make(chan struct{})}
 
 	go func() {
 		ticker := time.NewTicker(config.Minimalism.CleaningInterval)
@@ -36,7 +35,8 @@ func NewMinimalism(config *Config) ICaching {
 					item := value.(MinimalismItem)
 
 					if item.expires < now {
-						currentSession.items.Delete(key)
+						k, _ := key.(string)
+						currentSession.items.Pop(k)
 					}
 
 					return true
@@ -72,7 +72,7 @@ func (ml *MinimalismClient) Middleware(hash hash.IHash) echo.MiddlewareFunc {
 
 // Get ...
 func (ml *MinimalismClient) Get(key string) (interface{}, error) {
-	obj, ok := ml.items.Load(key)
+	obj, ok := ml.items.Get(key)
 	if !ok {
 		return "", errors.New("item with that key does not exist")
 	}
@@ -95,7 +95,7 @@ func (ml *MinimalismClient) GetMany(keys []string) (map[string]interface{}, []st
 	var itemNotFound []string
 
 	for _, key := range keys {
-		obj, ok := ml.items.Load(key)
+		obj, ok := ml.items.Get(key)
 		if !ok {
 			itemNotFound = append(itemNotFound, key)
 		}
@@ -116,7 +116,7 @@ func (ml *MinimalismClient) GetManyStrings(keys []string) (map[string]string, []
 	var itemNotFound []string
 
 	for _, key := range keys {
-		obj, ok := ml.items.Load(key)
+		obj, ok := ml.items.Get(key)
 		if !ok {
 			itemNotFound = append(itemNotFound, key)
 		}
@@ -140,7 +140,7 @@ func (ml *MinimalismClient) Set(key string, value interface{}, expire time.Durat
 		expires = time.Now().Add(expire).UnixNano()
 	}
 
-	ml.items.Store(key, MinimalismItem{
+	ml.items.Push(key, MinimalismItem{
 		data:    value,
 		expires: expires,
 	})
@@ -167,7 +167,7 @@ func (ml *MinimalismClient) Range(f func(key, value interface{}) bool) {
 
 // Delete deletes the key and its value from the cache.
 func (ml *MinimalismClient) Delete(key string) error {
-	ml.items.Delete(key)
+	ml.items.Pop(key)
 
 	return nil
 }
@@ -180,7 +180,7 @@ func (ml *MinimalismClient) GetCapacity() (interface{}, error) {
 // Close closes the cache and frees up resources.
 func (ml *MinimalismClient) Close() error {
 	ml.close <- struct{}{}
-	ml.items = sync.Map{}
+	ml.items = ItemQueueNew(10 * 1024 * 1024)
 
 	return nil
 }
