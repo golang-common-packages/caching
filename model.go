@@ -10,8 +10,8 @@ type Config struct {
 
 // Redis model provide info for redis config
 type Redis struct {
-	Prefix   string `json:"prefix,omitempty"`
-	Password string `json:"password,omitempty"`
-	Host     string `json:"host,omitempty"`
-	DB       int    `json:"db,omitempty"`
+	Password   string `json:"password,omitempty"`
+	Host       string `json:"host,omitempty"`
+	DB         int    `json:"db,omitempty"`
+	MaxRetries int    `json:"maxRetries,omitempty"`
 }

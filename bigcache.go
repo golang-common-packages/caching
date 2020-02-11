@@ -64,7 +64,13 @@ func (bc *BigCacheClient) Delete(key string) (err error) {
 	return bc.Client.Delete(key)
 }
 
+// GetDBSize method return redis database size
+func (bc *BigCacheClient) GetCapacity() (result interface{}, err error) {
+	dbSize := bc.Client.Capacity()
+	return dbSize, nil
+}
+
 // Close function will close BigCache connection
-func (bc *BigCacheClient) Close() {
-	bc.Close()
+func (bc *BigCacheClient) Close() error {
+	return bc.Client.Close()
 }

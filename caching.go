@@ -14,6 +14,8 @@ type ICaching interface {
 	Get(key string) (string, error)
 	Delete(key string) error
 	Set(key string, value string, expire time.Duration) error
+	GetCapacity() (result interface{}, err error)
+	Close() error
 }
 
 const (

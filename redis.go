@@ -14,31 +14,30 @@ import (
 // RedisClient manage all redis action
 type RedisClient struct {
 	Client *redis.Client
-	Prefix string
 }
 
-// NewRedis function return redis client based on singleton pattern
+// NewRedis function return redis Client based on singleton pattern
 func NewRedis(config *Config) ICaching {
-	currentSession := &RedisClient{nil, ""}
+	currentSession := &RedisClient{nil}
 	client, err := currentSession.connect(config.Redis)
 	if err != nil {
 		panic(err)
 	} else {
 		currentSession.Client = client
-		currentSession.Prefix = config.Redis.Prefix
 		log.Println("Connected to Redis Server")
 	}
 
 	return currentSession
 }
 
-// connect private function establish redis connection
+// connect private method establish redis connection
 func (r *RedisClient) connect(data Redis) (client *redis.Client, err error) {
 	if r.Client == nil {
 		client = redis.NewClient(&redis.Options{
-			Addr:     data.Host,
-			Password: data.Password,
-			DB:       data.DB,
+			Addr:       data.Host,
+			Password:   data.Password,
+			DB:         data.DB,
+			MaxRetries: data.MaxRetries,
 		})
 
 		_, err := client.Ping().Result()
@@ -53,7 +52,7 @@ func (r *RedisClient) connect(data Redis) (client *redis.Client, err error) {
 	return
 }
 
-// Middleware function will provide an echo middleware for Redis
+// Middleware method will provide an echo middleware for Redis
 func (r *RedisClient) Middleware(hash hash.IHash) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -72,25 +71,31 @@ func (r *RedisClient) Middleware(hash hash.IHash) echo.MiddlewareFunc {
 	}
 }
 
-// Set function will set key and value
+// Set method will set key and value
 func (r *RedisClient) Set(key string, value string, expire time.Duration) (err error) {
-	err = r.Client.Set(r.Prefix+key, value, expire).Err()
+	err = r.Client.Set(key, value, expire).Err()
 	return
 }
 
-// Get function will get value based on the key provided
+// Get method return value based on the key provided
 func (r *RedisClient) Get(key string) (value string, err error) {
-	value, err = r.Client.Get(r.Prefix + key).Result()
+	value, err = r.Client.Get(key).Result()
 	return
 }
 
-// Delete function will delete value based on the key provided
+// Delete method delete value based on the key provided
 func (r *RedisClient) Delete(key string) (err error) {
-	err = r.Client.Del(r.Prefix + key).Err()
+	err = r.Client.Del(key).Err()
 	return
 }
 
-// Close function will close redis connection
-func (r *RedisClient) Close() {
-	r.Close()
+// GetDBSize method return redis database size
+func (r *RedisClient) GetCapacity() (result interface{}, err error) {
+	IntCmd := r.Client.DBSize()
+	return IntCmd.Result()
+}
+
+// Close method will close redis connection
+func (r *RedisClient) Close() error {
+	return r.Client.Close()
 }
