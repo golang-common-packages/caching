@@ -72,19 +72,64 @@ func (ml *MinimalismClient) Middleware(hash hash.IHash) echo.MiddlewareFunc {
 
 // Get ...
 func (ml *MinimalismClient) Get(key string) (interface{}, error) {
-	obj, exists := ml.items.Load(key)
-
-	if !exists {
+	obj, ok := ml.items.Load(key)
+	if !ok {
 		return "", errors.New("item with that key does not exist")
 	}
 
-	item := obj.(MinimalismItem)
+	item, err := obj.(MinimalismItem)
+	if !err {
+		return nil, errors.New("can not map object to MinimalismItem model")
+	}
 
 	if item.expires > 0 && time.Now().UnixNano() > item.expires {
 		return "", errors.New("item with that key does not exist")
 	}
 
 	return item.data, nil
+}
+
+// GetMany ...
+func (ml *MinimalismClient) GetMany(keys []string) (map[string]interface{}, []string, error) {
+	var itemFound map[string]interface{}
+	var itemNotFound []string
+
+	for _, key := range keys {
+		obj, ok := ml.items.Load(key)
+		if !ok {
+			itemNotFound = append(itemNotFound, key)
+		}
+
+		item, err := obj.(MinimalismItem)
+		if !err {
+			return nil, nil, errors.New("can not map object to MinimalismItem model")
+		}
+
+		itemFound[key] = item.data
+	}
+
+	return itemFound, itemNotFound, nil
+}
+
+func (ml *MinimalismClient) GetManyStrings(keys []string) (map[string]string, []string, error) {
+	var itemFound map[string]string
+	var itemNotFound []string
+
+	for _, key := range keys {
+		obj, ok := ml.items.Load(key)
+		if !ok {
+			itemNotFound = append(itemNotFound, key)
+		}
+
+		item, err := obj.(MinimalismItem)
+		if !err {
+			return nil, nil, errors.New("can not map object to MinimalismItem model")
+		}
+
+		itemFound[key] = item.data.(string)
+	}
+
+	return itemFound, itemNotFound, nil
 }
 
 // Set ...
