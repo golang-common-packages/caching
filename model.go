@@ -28,6 +28,6 @@ type Minimalism struct {
 
 // MinimalismItem ...
 type MinimalismItem struct {
-	data    string
-	expires int64
+	data    interface{} `json:"data,omitempty"`
+	expires int64       `json:"expires,omitempty"`
 }

@@ -72,25 +72,22 @@ func (r *RedisClient) Middleware(hash hash.IHash) echo.MiddlewareFunc {
 }
 
 // Set method will set key and value
-func (r *RedisClient) Set(key string, value string, expire time.Duration) (err error) {
-	err = r.Client.Set(key, value, expire).Err()
-	return
+func (r *RedisClient) Set(key string, value interface{}, expire time.Duration) error {
+	return r.Client.Set(key, value, expire).Err()
 }
 
 // Get method return value based on the key provided
-func (r *RedisClient) Get(key string) (value string, err error) {
-	value, err = r.Client.Get(key).Result()
-	return
+func (r *RedisClient) Get(key string) (interface{}, error) {
+	return r.Client.Get(key).Result()
 }
 
 // Delete method delete value based on the key provided
-func (r *RedisClient) Delete(key string) (err error) {
-	err = r.Client.Del(key).Err()
-	return
+func (r *RedisClient) Delete(key string) error {
+	return r.Client.Del(key).Err()
 }
 
 // GetDBSize method return redis database size
-func (r *RedisClient) GetCapacity() (result interface{}, err error) {
+func (r *RedisClient) GetCapacity() (interface{}, error) {
 	IntCmd := r.Client.DBSize()
 	return IntCmd.Result()
 }

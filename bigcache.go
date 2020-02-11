@@ -1,6 +1,7 @@
 package caching
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"time"
@@ -48,26 +49,28 @@ func (bc *BigCacheClient) Middleware(hash hash.IHash) echo.MiddlewareFunc {
 }
 
 // Set function will set key and value
-func (bc *BigCacheClient) Set(key string, value string, expire time.Duration) (err error) {
-	return bc.Client.Set(key, []byte(value))
+func (bc *BigCacheClient) Set(key string, value interface{}, expire time.Duration) error {
+	b, ok := value.(*[]byte)
+	if !ok {
+		return errors.New("value must be []byte")
+	}
+
+	return bc.Client.Set(key, *b)
 }
 
 // Get function will get value based on the key provided
-func (bc *BigCacheClient) Get(key string) (value string, err error) {
-	result, err := bc.Client.Get(key)
-	value = string(result)
-	return
+func (bc *BigCacheClient) Get(key string) (interface{}, error) {
+	return bc.Client.Get(key)
 }
 
 // Delete function will delete value based on the key provided
-func (bc *BigCacheClient) Delete(key string) (err error) {
+func (bc *BigCacheClient) Delete(key string) error {
 	return bc.Client.Delete(key)
 }
 
 // GetDBSize method return redis database size
-func (bc *BigCacheClient) GetCapacity() (result interface{}, err error) {
-	dbSize := bc.Client.Capacity()
-	return dbSize, nil
+func (bc *BigCacheClient) GetCapacity() (interface{}, error) {
+	return bc.Client.Capacity(), nil
 }
 
 // Close function will close BigCache connection

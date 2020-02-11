@@ -11,10 +11,10 @@ import (
 // ICaching interface caching package
 type ICaching interface {
 	Middleware(hash hash.IHash) echo.MiddlewareFunc
-	Get(key string) (string, error)
-	Set(key string, value string, expire time.Duration) error
+	Get(key string) (interface{}, error)
+	Set(key string, value interface{}, expire time.Duration) error
 	Delete(key string) error
-	GetCapacity() (result interface{}, err error)
+	GetCapacity() (interface{}, error)
 	Close() error
 }
 

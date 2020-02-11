@@ -71,7 +71,7 @@ func (ml *MinimalismClient) Middleware(hash hash.IHash) echo.MiddlewareFunc {
 }
 
 // Get ...
-func (ml *MinimalismClient) Get(key string) (string, error) {
+func (ml *MinimalismClient) Get(key string) (interface{}, error) {
 	obj, exists := ml.items.Load(key)
 
 	if !exists {
@@ -88,7 +88,7 @@ func (ml *MinimalismClient) Get(key string) (string, error) {
 }
 
 // Set ...
-func (ml *MinimalismClient) Set(key string, value string, expire time.Duration) error {
+func (ml *MinimalismClient) Set(key string, value interface{}, expire time.Duration) error {
 	var expires int64
 
 	if expire > 0 {
@@ -128,7 +128,7 @@ func (ml *MinimalismClient) Delete(key string) error {
 }
 
 // GetDBSize method return redis database size
-func (ml *MinimalismClient) GetCapacity() (result interface{}, err error) {
+func (ml *MinimalismClient) GetCapacity() (interface{}, error) {
 	return reflect.Type.Size(ml.items), nil
 }
 
