@@ -5,11 +5,11 @@ import (
 	"sync"
 )
 
-// Item the type of the queue
+// Item ...
 type Item interface{}
 
-// ItemQueue the queue of Items
-type ItemQueue struct {
+// Queue ...
+type Queue struct {
 	items   sync.Map
 	keys    []string
 	maxSize int64
@@ -17,106 +17,123 @@ type ItemQueue struct {
 	lock    sync.RWMutex
 }
 
-// New creates a new ItemQueue
-func ItemQueueNew(maxSize int64) *ItemQueue {
-	s := ItemQueue{}
-	s.items = sync.Map{}
-	s.keys = []string{}
-	s.maxSize = maxSize
-	s.curSize = 0
-	return &s
+// NewQueue ...
+func NewQueue(maxSize int64) *Queue {
+	currentQueue := Queue{
+		items:   sync.Map{},
+		keys:    []string{},
+		maxSize: maxSize,
+		curSize: 0,
+		lock:    sync.RWMutex{},
+	}
+
+	return &currentQueue
 }
 
-// Enqueue adds an Item to the end of the queue
-func (s *ItemQueue) Push(k string, t Item) bool {
+// Push ...
+func (q *Queue) Push(k string, t Item) bool {
 	itemSize := int64(reflect.Type.Size(t))
-	if itemSize > s.maxSize || k == "" {
+	if itemSize > q.maxSize || k == "" {
 		return false
 	}
-	for s.curSize+itemSize > s.maxSize {
-		s.Pop("")
+
+	// Clean room for new items
+	for q.curSize+itemSize > q.maxSize {
+		q.Pop("")
 	}
-	s.lock.Lock()
-	s.curSize = s.curSize + int64(reflect.Type.Size(t))
-	s.keys = append(s.keys, k)
-	s.items.LoadOrStore(k, t)
-	s.lock.Unlock()
+
+	q.lock.Lock()
+	q.curSize = q.curSize + int64(reflect.Type.Size(t))
+	q.keys = append(q.keys, k)
+	q.items.LoadOrStore(k, t)
+	q.lock.Unlock()
 	return true
 }
 
-// Dequeue removes an Item from the start of the queue
-func (s *ItemQueue) Pop(k string) *Item {
-	if s.IsEmpty() {
+// Pop ...
+func (q *Queue) Pop(k string) *Item {
+	if q.IsEmpty() {
 		return nil
 	}
+
 	var item interface{}
 	var exits bool
 	var idx int
+
 	if k != "" {
-		item, exits = s.items.Load(k)
-		for i, n := range s.keys {
+		// Remove item by key
+		item, exits = q.items.Load(k)
+		for i, n := range q.keys {
 			if k == n {
 				idx = i
 				break
 			}
 		}
 	} else {
-		key := s.keys[0]
-		item, exits = s.items.Load(key)
+		// Remove first item
+		key := q.keys[0]
+		item, exits = q.items.Load(key)
 		idx = 0
-	}
-	if exits {
-		s.lock.Lock()
-		s.curSize = s.curSize - int64(reflect.Type.Size(item))
-		s.items.Delete(k)
-		s.keys = append(s.keys[:idx], s.keys[idx+1:]...)
-		s.lock.Unlock()
-		i, _ := (item).(Item)
-		return &i
-	} else {
-		return nil
-	}
-}
-
-func (s *ItemQueue) Get(k string) (Item, bool) {
-	if s.IsEmpty() {
-		return nil, false
-	}
-	item, exits := s.items.Load(k)
-	if exits {
-		i, ok := (item).(Item)
-		if !ok {
-			return nil, false
+		if !exits {
+			return nil
 		}
-		return i, true
-	} else {
-		return nil, false
 	}
-}
 
-// Front returns the item next in the queue, without removing it
-func (s *ItemQueue) Front() *Item {
-	if s.IsEmpty() {
-		return nil
-	}
-	s.lock.RLock()
-	key := s.keys[0]
-	item, _ := s.items.Load(key)
-	i, _ := item.(Item)
-	s.lock.RUnlock()
+	q.lock.Lock()
+	q.curSize = q.curSize - int64(reflect.Type.Size(item))
+	q.items.Delete(k)
+	q.keys = append(q.keys[:idx], q.keys[idx+1:]...)
+	q.lock.Unlock()
+	i, _ := (item).(Item)
+
 	return &i
 }
 
-func (s *ItemQueue) Range(fn func(key, value interface{}) bool) {
-	s.items.Range(fn)
+// Get ...
+func (q *Queue) Get(k string) (Item, bool) {
+	if q.IsEmpty() {
+		return nil, false
+	}
+
+	item, exits := q.items.Load(k)
+	if !exits {
+		return nil, false
+	}
+
+	i, ok := (item).(Item)
+	if !ok {
+		return nil, false
+	}
+
+	return i, true
 }
 
-// IsEmpty returns true if the queue is empty
-func (s *ItemQueue) IsEmpty() bool {
-	return len(s.keys) == 0
+// Front ...
+func (q *Queue) Front() *Item {
+	if q.IsEmpty() {
+		return nil
+	}
+
+	q.lock.RLock()
+	key := q.keys[0]
+	item, _ := q.items.Load(key)
+	i, _ := item.(Item)
+	q.lock.RUnlock()
+
+	return &i
 }
 
-// Size returns the number of Items in the queue
-func (s *ItemQueue) Size() int {
-	return len(s.keys)
+// Range ...
+func (q *Queue) Range(fn func(key, value interface{}) bool) {
+	q.items.Range(fn)
+}
+
+// IsEmpty ...
+func (q *Queue) IsEmpty() bool {
+	return len(q.keys) == 0
+}
+
+// Size ...
+func (q *Queue) Size() int {
+	return len(q.keys)
 }

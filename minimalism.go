@@ -14,13 +14,13 @@ import (
 
 // MinimalismClient ...
 type MinimalismClient struct {
-	items *ItemQueue
+	items *Queue
 	close chan struct{}
 }
 
 // NewMinimalism ...
 func NewMinimalism(config *Config) ICaching {
-	currentSession := &MinimalismClient{ItemQueueNew(10 * 1024 * 1024), make(chan struct{})}
+	currentSession := &MinimalismClient{NewQueue(10 * 1024 * 1024), make(chan struct{})}
 
 	go func() {
 		ticker := time.NewTicker(config.Minimalism.CleaningInterval)
@@ -180,7 +180,7 @@ func (ml *MinimalismClient) GetCapacity() (interface{}, error) {
 // Close closes the cache and frees up resources.
 func (ml *MinimalismClient) Close() error {
 	ml.close <- struct{}{}
-	ml.items = ItemQueueNew(10 * 1024 * 1024)
+	ml.items = NewQueue(10 * 1024 * 1024)
 
 	return nil
 }
