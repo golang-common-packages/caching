@@ -12,8 +12,8 @@ import (
 type ICaching interface {
 	Middleware(hash hash.IHash) echo.MiddlewareFunc
 	Get(key string) (string, error)
-	Delete(key string) error
 	Set(key string, value string, expire time.Duration) error
+	Delete(key string) error
 	GetCapacity() (result interface{}, err error)
 	Close() error
 }
