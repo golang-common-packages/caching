@@ -36,7 +36,7 @@ func NewMinimalism(config *Config) ICaching {
 
 					if item.expires < now {
 						k, _ := key.(string)
-						currentSession.items.Pop(k)
+						currentSession.items.Dequeue(k)
 					}
 
 					return true
@@ -70,15 +70,15 @@ func (ml *MinimalismClient) Middleware(hash hash.IHash) echo.MiddlewareFunc {
 	}
 }
 
-// Get ...
+// GetByKey ...
 func (ml *MinimalismClient) Get(key string) (interface{}, error) {
-	obj, ok := ml.items.Get(key)
-	if !ok {
-		return "", errors.New("item with that key does not exist")
+	obj, err := ml.items.GetByKey(key)
+	if err != nil {
+		return nil, errors.New("item with that key does not exist")
 	}
 
-	item, err := obj.(MinimalismItem)
-	if !err {
+	item, ok := obj.(MinimalismItem)
+	if !ok {
 		return nil, errors.New("can not map object to MinimalismItem model")
 	}
 
@@ -95,13 +95,13 @@ func (ml *MinimalismClient) GetMany(keys []string) (map[string]interface{}, []st
 	var itemNotFound []string
 
 	for _, key := range keys {
-		obj, ok := ml.items.Get(key)
-		if !ok {
+		obj, err := ml.items.GetByKey(key)
+		if err != nil {
 			itemNotFound = append(itemNotFound, key)
 		}
 
-		item, err := obj.(MinimalismItem)
-		if !err {
+		item, ok := obj.(MinimalismItem)
+		if !ok {
 			return nil, nil, errors.New("can not map object to MinimalismItem model")
 		}
 
@@ -116,13 +116,13 @@ func (ml *MinimalismClient) GetManyStrings(keys []string) (map[string]string, []
 	var itemNotFound []string
 
 	for _, key := range keys {
-		obj, ok := ml.items.Get(key)
-		if !ok {
+		obj, err := ml.items.GetByKey(key)
+		if err != nil {
 			itemNotFound = append(itemNotFound, key)
 		}
 
-		item, err := obj.(MinimalismItem)
-		if !err {
+		item, ok := obj.(MinimalismItem)
+		if !ok {
 			return nil, nil, errors.New("can not map object to MinimalismItem model")
 		}
 
@@ -140,10 +140,12 @@ func (ml *MinimalismClient) Set(key string, value interface{}, expire time.Durat
 		expires = time.Now().Add(expire).UnixNano()
 	}
 
-	ml.items.Push(key, MinimalismItem{
+	if err := ml.items.Enqueue(key, MinimalismItem{
 		data:    value,
 		expires: expires,
-	})
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -167,7 +169,7 @@ func (ml *MinimalismClient) Range(f func(key, value interface{}) bool) {
 
 // Delete deletes the key and its value from the cache.
 func (ml *MinimalismClient) Delete(key string) error {
-	ml.items.Pop(key)
+	ml.items.Dequeue(key)
 
 	return nil
 }

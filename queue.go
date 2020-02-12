@@ -1,126 +1,125 @@
 package caching
 
 import (
+	"errors"
 	"reflect"
 	"sync"
 )
 
-// Item ...
-type Item interface{}
-
 // Queue ...
 type Queue struct {
-	items   sync.Map
-	keys    []string
-	maxSize int64
-	curSize int64
-	lock    sync.RWMutex
+	items            sync.Map
+	keys             []string
+	queueSize        int64
+	queueCurrentSize int64
+	rwMutex          sync.RWMutex
 }
 
 // NewQueue ...
-func NewQueue(maxSize int64) *Queue {
+func NewQueue(queueSize int64) *Queue {
 	currentQueue := Queue{
-		items:   sync.Map{},
-		keys:    []string{},
-		maxSize: maxSize,
-		curSize: 0,
-		lock:    sync.RWMutex{},
+		items:            sync.Map{},
+		keys:             []string{},
+		queueSize:        queueSize,
+		queueCurrentSize: 0,
+		rwMutex:          sync.RWMutex{},
 	}
 
 	return &currentQueue
 }
 
-// Push ...
-func (q *Queue) Push(k string, t Item) bool {
-	itemSize := int64(reflect.Type.Size(t))
-	if itemSize > q.maxSize || k == "" {
-		return false
+// Enqueue ...
+func (q *Queue) Enqueue(key string, value interface{}) error {
+	itemSize := int64(reflect.Type.Size(value))
+	if itemSize > q.queueSize || key == "" {
+		return errors.New("key is empty or queue not enough space")
 	}
 
-	// Clean room for new items
-	for q.curSize+itemSize > q.maxSize {
-		q.Pop("")
+	// Clean space for new item
+	for q.queueCurrentSize+itemSize > q.queueSize {
+		q.Dequeue("")
 	}
 
-	q.lock.Lock()
-	q.curSize = q.curSize + int64(reflect.Type.Size(t))
-	q.keys = append(q.keys, k)
-	q.items.LoadOrStore(k, t)
-	q.lock.Unlock()
-	return true
+	q.rwMutex.Lock()
+	q.queueCurrentSize = q.queueCurrentSize + int64(reflect.Type.Size(value))
+	q.keys = append(q.keys, key)
+	q.items.LoadOrStore(key, value)
+	q.rwMutex.Unlock()
+
+	return nil
 }
 
-// Pop ...
-func (q *Queue) Pop(k string) *Item {
+// Dequeue ...
+func (q *Queue) Dequeue(key string) error {
 	if q.IsEmpty() {
-		return nil
+		return errors.New("the queue is empty")
 	}
 
-	var item interface{}
-	var exits bool
-	var idx int
+	var (
+		item     interface{}
+		exits    bool
+		keyIndex int
+	)
 
-	if k != "" {
-		// Remove item by key
-		item, exits = q.items.Load(k)
-		for i, n := range q.keys {
-			if k == n {
-				idx = i
+	if key != "" {
+		// Load item by key
+		item, exits = q.items.Load(key)
+		for i, k := range q.keys {
+			if key == k {
+				keyIndex = i
 				break
 			}
 		}
 	} else {
-		// Remove first item
-		key := q.keys[0]
-		item, exits = q.items.Load(key)
-		idx = 0
-		if !exits {
-			return nil
-		}
+		// Load the first item
+		item, exits = q.items.Load(q.keys[0])
+		keyIndex = 0
 	}
 
-	q.lock.Lock()
-	q.curSize = q.curSize - int64(reflect.Type.Size(item))
-	q.items.Delete(k)
-	q.keys = append(q.keys[:idx], q.keys[idx+1:]...)
-	q.lock.Unlock()
-	i, _ := (item).(Item)
+	if !exits {
+		return errors.New("this key does not exits")
+	}
 
-	return &i
+	q.rwMutex.Lock()
+	q.queueCurrentSize = q.queueCurrentSize - int64(reflect.Type.Size(item))
+	q.items.Delete(key)
+	q.keys = append(q.keys[:keyIndex], q.keys[keyIndex+1:]...) //Update keys slice after remove this key from items map
+	q.rwMutex.Unlock()
+
+	return nil
 }
 
 // Get ...
-func (q *Queue) Get(k string) (Item, bool) {
+func (q *Queue) Get() (interface{}, error) {
 	if q.IsEmpty() {
-		return nil, false
+		return nil, errors.New("queue is empty")
 	}
 
-	item, exits := q.items.Load(k)
+	q.rwMutex.RLock()
+	key := q.keys[0]
+	item, exits := q.items.Load(key)
+	q.rwMutex.RUnlock()
 	if !exits {
-		return nil, false
+		return nil, errors.New("this key does not exits")
 	}
 
-	i, ok := (item).(Item)
-	if !ok {
-		return nil, false
-	}
-
-	return i, true
+	return item, nil
 }
 
-// Front ...
-func (q *Queue) Front() *Item {
+// GetByKey ...
+func (q *Queue) GetByKey(k string) (interface{}, error) {
 	if q.IsEmpty() {
-		return nil
+		return nil, errors.New("queue is empty")
 	}
 
-	q.lock.RLock()
-	key := q.keys[0]
-	item, _ := q.items.Load(key)
-	i, _ := item.(Item)
-	q.lock.RUnlock()
+	q.rwMutex.RLock()
+	item, exits := q.items.Load(k)
+	q.rwMutex.RUnlock()
+	if !exits {
+		return nil, errors.New("this key does not exits")
+	}
 
-	return &i
+	return item, nil
 }
 
 // Range ...
@@ -136,4 +135,9 @@ func (q *Queue) IsEmpty() bool {
 // Size ...
 func (q *Queue) Size() int {
 	return len(q.keys)
+}
+
+// Capacity ...
+func (q *Queue) Capacity() int64 {
+	return q.queueCurrentSize
 }

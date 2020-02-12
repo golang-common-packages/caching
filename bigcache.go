@@ -58,7 +58,7 @@ func (bc *BigCacheClient) Set(key string, value interface{}, expire time.Duratio
 	return bc.Client.Set(key, *b)
 }
 
-// Get function will get value based on the key provided
+// GetByKey function will get value based on the key provided
 func (bc *BigCacheClient) Get(key string) (interface{}, error) {
 	return bc.Client.Get(key)
 }

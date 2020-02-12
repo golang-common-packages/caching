@@ -76,7 +76,7 @@ func (r *RedisClient) Set(key string, value interface{}, expire time.Duration) e
 	return r.Client.Set(key, value, expire).Err()
 }
 
-// Get method return value based on the key provided
+// GetByKey method return value based on the key provided
 func (r *RedisClient) Get(key string) (interface{}, error) {
 	return r.Client.Get(key).Result()
 }
