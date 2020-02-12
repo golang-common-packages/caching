@@ -19,13 +19,16 @@ type ICaching interface {
 }
 
 const (
-	REDIS = iota
+	MINIMALISM = iota
 	BIGCACHE
+	REDIS
 )
 
 // New function for Factory Pattern
 func New(cachingType int, config *Config) ICaching {
 	switch cachingType {
+	case MINIMALISM:
+		return NewMinimalism(config)
 	case REDIS:
 		return NewRedis(config)
 	case BIGCACHE:
