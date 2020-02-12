@@ -132,12 +132,24 @@ func (q *Queue) IsEmpty() bool {
 	return len(q.keys) == 0
 }
 
-// Size ...
-func (q *Queue) Size() int {
+// GetNumberOfKeys ...
+func (q *Queue) GetNumberOfKeys() int {
 	return len(q.keys)
 }
 
-// Capacity ...
-func (q *Queue) Capacity() int64 {
+// GetQueueSize ...
+func (q *Queue) GetQueueSize() int64 {
+	return q.queueSize
+}
+
+// SetQueueSize ...
+func (q *Queue) SetQueueSize(queueSize int64) {
+	q.rwMutex.RLock()
+	q.queueSize = queueSize
+	q.rwMutex.RUnlock()
+}
+
+// GetQueueCurrentSize ...
+func (q *Queue) GetQueueCurrentSize() int64 {
 	return q.queueCurrentSize
 }
