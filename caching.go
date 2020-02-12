@@ -14,6 +14,7 @@ type ICaching interface {
 	Get(key string) (interface{}, error)
 	Set(key string, value interface{}, expire time.Duration) error
 	Delete(key string) error
+	GetNumberOfRecords() int
 	GetCapacity() (interface{}, error)
 	Close() error
 }

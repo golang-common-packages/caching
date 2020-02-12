@@ -149,9 +149,12 @@ func (ml *MinimalismClient) Range(f func(key, value interface{}) bool) {
 
 // Delete deletes the key and its value from the cache.
 func (ml *MinimalismClient) Delete(key string) error {
-	ml.items.Dequeue(key)
+	return ml.items.Dequeue(key)
+}
 
-	return nil
+// GetNumberOfRecords return number of records
+func (ml *MinimalismClient) GetNumberOfRecords() int {
+	return ml.items.GetNumberOfKeys()
 }
 
 // GetDBSize method return redis database size

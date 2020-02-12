@@ -86,9 +86,15 @@ func (r *RedisClient) Delete(key string) error {
 	return r.Client.Del(key).Err()
 }
 
+// GetNumberOfRecords return number of records
+func (r *RedisClient) GetNumberOfRecords() int {
+	return len(r.Client.Do("KEYS", "*").Args())
+}
+
 // GetDBSize method return redis database size
 func (r *RedisClient) GetCapacity() (interface{}, error) {
 	IntCmd := r.Client.DBSize()
+
 	return IntCmd.Result()
 }
 

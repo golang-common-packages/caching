@@ -68,6 +68,11 @@ func (bc *BigCacheClient) Delete(key string) error {
 	return bc.Client.Delete(key)
 }
 
+// GetNumberOfRecords return number of records
+func (bc *BigCacheClient) GetNumberOfRecords() int {
+	return bc.Client.Len()
+}
+
 // GetDBSize method return redis database size
 func (bc *BigCacheClient) GetCapacity() (interface{}, error) {
 	return bc.Client.Capacity(), nil
