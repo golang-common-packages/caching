@@ -10,17 +10,18 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/golang-common-packages/hash"
+	"github.com/golang-common-packages/queue"
 )
 
 // MinimalismClient ...
 type MinimalismClient struct {
-	items *Queue
+	items *queue.Queue
 	close chan struct{}
 }
 
 // NewMinimalism ...
 func NewMinimalism(config *Config) ICaching {
-	currentSession := &MinimalismClient{NewQueue(10 * 1024 * 1024), make(chan struct{})}
+	currentSession := &MinimalismClient{queue.New(config.Minimalism.CacheSize), make(chan struct{})}
 
 	go func() {
 		ticker := time.NewTicker(config.Minimalism.CleaningInterval)
@@ -111,27 +112,6 @@ func (ml *MinimalismClient) GetMany(keys []string) (map[string]interface{}, []st
 	return itemFound, itemNotFound, nil
 }
 
-func (ml *MinimalismClient) GetManyStrings(keys []string) (map[string]string, []string, error) {
-	var itemFound map[string]string
-	var itemNotFound []string
-
-	for _, key := range keys {
-		obj, err := ml.items.GetByKey(key)
-		if err != nil {
-			itemNotFound = append(itemNotFound, key)
-		}
-
-		item, ok := obj.(MinimalismItem)
-		if !ok {
-			return nil, nil, errors.New("can not map object to MinimalismItem model")
-		}
-
-		itemFound[key] = item.data.(string)
-	}
-
-	return itemFound, itemNotFound, nil
-}
-
 // Set ...
 func (ml *MinimalismClient) Set(key string, value interface{}, expire time.Duration) error {
 	var expires int64
@@ -182,7 +162,7 @@ func (ml *MinimalismClient) GetCapacity() (interface{}, error) {
 // Close closes the cache and frees up resources.
 func (ml *MinimalismClient) Close() error {
 	ml.close <- struct{}{}
-	ml.items = NewQueue(10 * 1024 * 1024)
+	ml.items = queue.New(10 * 1024 * 1024) // 10 * 1024 * 1024 for 10 mb
 
 	return nil
 }

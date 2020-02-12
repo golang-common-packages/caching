@@ -24,6 +24,7 @@ type Redis struct {
 // Minimalism ...
 type Minimalism struct {
 	CleaningInterval time.Duration `json:"cleaningInterval,omitempty"`
+	CacheSize        int64         `json:"cacheSize,omitempty"`
 }
 
 // MinimalismItem ...
