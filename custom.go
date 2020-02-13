@@ -4,8 +4,8 @@ import (
 	"errors"
 	"log"
 	"net/http"
-	"reflect"
 	"time"
+	"unsafe"
 
 	"github.com/labstack/echo/v4"
 
@@ -15,7 +15,7 @@ import (
 
 // CustomClient ...
 type CustomClient struct {
-	items *linear.Linear
+	items *linear.Client
 	close chan struct{}
 }
 
@@ -179,7 +179,7 @@ func (cl *CustomClient) GetNumberOfRecords() int {
 
 // GetDBSize method return redis database size
 func (cl *CustomClient) GetCapacity() (interface{}, error) {
-	return reflect.Type.Size(cl.items), nil
+	return unsafe.Sizeof(cl.items), nil
 }
 
 // Close closes the cache and frees up resources.

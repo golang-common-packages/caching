@@ -5,15 +5,20 @@ go 1.13
 require (
 	github.com/allegro/bigcache/v2 v2.2.0
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/go-redis/redis v6.15.6+incompatible
-	github.com/golang-common-packages/hash v0.0.0-20200119060028-8ea9b76f8a26
-	github.com/golang-common-packages/linear v0.0.0-20200213050827-0fedd5b26a72
-	github.com/golang-common-packages/queue v0.0.0-20200212063414-68999c8ad3f4
-	github.com/golang/protobuf v1.3.1 // indirect
-	github.com/kr/pretty v0.1.0 // indirect
-	github.com/labstack/echo/v4 v4.1.13
-	github.com/onsi/ginkgo v1.11.0 // indirect
-	github.com/onsi/gomega v1.8.1 // indirect
-	golang.org/x/sys v0.0.0-20200106162015-b016eb3dc98e // indirect
-	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
+	github.com/go-redis/redis v6.15.7+incompatible
+	github.com/golang-common-packages/hash v0.0.0-20200119064113-a0081e2a6db8
+	github.com/golang-common-packages/linear v0.0.0-20200213082220-9c7e9d4d34f2
+	github.com/golang/protobuf v1.3.3 // indirect
+	github.com/kr/pretty v0.2.0 // indirect
+	github.com/labstack/echo v3.3.10+incompatible // indirect
+	github.com/labstack/echo/v4 v4.1.14
+	github.com/mattn/go-isatty v0.0.12 // indirect
+	github.com/onsi/ginkgo v1.12.0 // indirect
+	github.com/onsi/gomega v1.9.0 // indirect
+	golang.org/x/crypto v0.0.0-20200210222208-86ce3cb69678 // indirect
+	golang.org/x/net v0.0.0-20200202094626-16171245cfb2 // indirect
+	golang.org/x/sys v0.0.0-20200212091648-12a6c2dcc1e4 // indirect
+	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 // indirect
+	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
+	gopkg.in/yaml.v2 v2.2.8 // indirect
 )
