@@ -11,8 +11,8 @@ github.com/go-redis/redis v6.15.6+incompatible h1:H9evprGPLI8+ci7fxQx6WNZHJSb7be
 github.com/go-redis/redis v6.15.6+incompatible/go.mod h1:NAIEuMOZ/fxfXJIrKDQDz8wamY7mA7PouImQ2Jvg6kA=
 github.com/golang-common-packages/hash v0.0.0-20200119060028-8ea9b76f8a26 h1:CCKsJp/FKIyHLRo/FFBYpt2VmLVnz4QLYDCOsFQ1FMQ=
 github.com/golang-common-packages/hash v0.0.0-20200119060028-8ea9b76f8a26/go.mod h1:0JvieMtxIZO0VrJtgloaaHfNBQ2YsnSLppu//qkPsPM=
-github.com/golang-common-packages/queue v0.0.0-20200212060855-63aaaec77ae0 h1:jDl6HF8mZux1Xeildk3u1aTDlM00RIr4b/jjiFD11rw=
-github.com/golang-common-packages/queue v0.0.0-20200212060855-63aaaec77ae0/go.mod h1:HK4P2g1NHzyL8FoZqDWOh6oS+M6C7hEPqTCI1lXDW5k=
+github.com/golang-common-packages/linear v0.0.0-20200213050827-0fedd5b26a72 h1:7j0iLh/3pReY8YpGP8am5TMNonuP3p3Pvu4Hnbker58=
+github.com/golang-common-packages/linear v0.0.0-20200213050827-0fedd5b26a72/go.mod h1:xDU0qN2z8iBrqFkOUYRNPs+M7KnQ0JrwzwBLQa2jWmQ=
 github.com/golang-common-packages/queue v0.0.0-20200212063414-68999c8ad3f4 h1:AMTxoiHuXwjRu+VhoxR3/nFtas6P2JDAYDf2awciEVA=
 github.com/golang-common-packages/queue v0.0.0-20200212063414-68999c8ad3f4/go.mod h1:HK4P2g1NHzyL8FoZqDWOh6oS+M6C7hEPqTCI1lXDW5k=
 github.com/golang/protobuf v1.2.0/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=

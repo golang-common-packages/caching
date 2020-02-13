@@ -8,9 +8,9 @@ import (
 
 // Config model for database caching config
 type Config struct {
-	Minimalism Minimalism      `json:"minimalism,omitempty"`
-	Redis      Redis           `json:"redis,omitempty"`
-	BigCache   bigcache.Config `json:"bigCache,omitempty"`
+	CustomCache CustomCache     `json:"customCache,omitempty"`
+	Redis       Redis           `json:"redis,omitempty"`
+	BigCache    bigcache.Config `json:"bigCache,omitempty"`
 }
 
 // Redis model provide info for redis config
@@ -21,14 +21,15 @@ type Redis struct {
 	MaxRetries int    `json:"maxRetries,omitempty"`
 }
 
-// Minimalism ...
-type Minimalism struct {
+// CustomCache ...
+type CustomCache struct {
 	CleaningInterval time.Duration `json:"cleaningInterval,omitempty"`
 	CacheSize        int64         `json:"cacheSize,omitempty"`
+	SizeChecker      bool          `json:"sizeChecker,omitempty"`
 }
 
-// MinimalismItem ...
-type MinimalismItem struct {
+// CustomCacheItem ...
+type CustomCacheItem struct {
 	data    interface{} `json:"data,omitempty"`
 	expires int64       `json:"expires,omitempty"`
 }
