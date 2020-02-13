@@ -7,7 +7,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-redis/redis v6.15.7+incompatible
 	github.com/golang-common-packages/hash v0.0.0-20200119064113-a0081e2a6db8
-	github.com/golang-common-packages/linear v0.0.0-20200213082220-9c7e9d4d34f2
+	github.com/golang-common-packages/linear v0.0.0-20200213091603-4167d6ca486c
 	github.com/golang/protobuf v1.3.3 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/labstack/echo v3.3.10+incompatible // indirect

@@ -166,6 +166,10 @@ func (cl *CustomClient) Range(f func(key, value interface{}) bool) {
 	cl.items.Range(fn)
 }
 
+func (cl *CustomClient) Update(key string, value interface{}) error {
+	return cl.items.Udpate(key, value)
+}
+
 // Delete deletes the key and its value from the cache.
 func (cl *CustomClient) Delete(key string) error {
 	_, err := cl.items.Get(key)
