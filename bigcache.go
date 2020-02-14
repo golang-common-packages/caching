@@ -39,10 +39,16 @@ func (bc *BigCacheClient) Middleware(hash hash.IHash) echo.MiddlewareFunc {
 			token := c.Request().Header.Get(echo.HeaderAuthorization)
 			key := hash.SHA512(token)
 
-			if val, err := bc.Get(key); err.Error() != "Entry not found" {
-				log.Printf("Can not get accesstoken from BigCache in middleware: %s", err.Error())
-				return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-			} else if val == "" {
+			val, err := bc.Get(key)
+			if err != nil {
+				if err.Error() == "Entry not found" {
+					return next(c)
+				}
+
+				return c.NoContent(http.StatusInternalServerError)
+			} else if val != "" {
+				return next(c)
+			} else {
 				return c.NoContent(http.StatusUnauthorized)
 			}
 
