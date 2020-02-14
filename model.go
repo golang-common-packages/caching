@@ -23,8 +23,8 @@ type Redis struct {
 
 // CustomCache ...
 type CustomCache struct {
-	CleaningInterval time.Duration `json:"cleaningInterval,omitempty"`
-	CacheSize        int64         `json:"cacheSize,omitempty"`
+	CleaningInterval time.Duration `json:"cleaningInterval,omitempty"` // nanosecond
+	CacheSize        int64         `json:"cacheSize,omitempty"`        // byte
 	SizeChecker      bool          `json:"sizeChecker,omitempty"`
 }
 

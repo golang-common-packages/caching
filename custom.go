@@ -15,15 +15,15 @@ import (
 
 // CustomClient ...
 type CustomClient struct {
-	items *linear.Client
-	close chan struct{}
+	client *linear.Client
+	close  chan struct{}
 }
 
 // NewCustom ...
 func NewCustom(config *Config) ICaching {
 	currentSession := &CustomClient{linear.New(config.CustomCache.CacheSize, config.CustomCache.SizeChecker), make(chan struct{})}
 
-	// Check record expires and remove
+	// Check record expiration time and remove
 	go func() {
 		ticker := time.NewTicker(config.CustomCache.CleaningInterval)
 		defer ticker.Stop()
@@ -31,14 +31,13 @@ func NewCustom(config *Config) ICaching {
 		for {
 			select {
 			case <-ticker.C:
-				now := time.Now().UnixNano()
-
-				currentSession.items.Range(func(key, value interface{}) bool {
+				items := currentSession.client.GetItems()
+				items.Range(func(key, value interface{}) bool {
 					item := value.(CustomCacheItem)
 
-					if item.expires < now {
+					if item.expires < time.Now().UnixNano() {
 						k, _ := key.(string)
-						currentSession.items.Get(k)
+						currentSession.client.Get(k)
 					}
 
 					return true
@@ -74,9 +73,9 @@ func (cl *CustomClient) Middleware(hash hash.IHash) echo.MiddlewareFunc {
 
 // GetByKey ...
 func (cl *CustomClient) Get(key string) (interface{}, error) {
-	obj, err := cl.items.Get(key)
+	obj, err := cl.client.Get(key)
 	if err != nil {
-		return nil, errors.New("item with that key does not exist")
+		return nil, err
 	}
 
 	item, ok := obj.(CustomCacheItem)
@@ -84,8 +83,8 @@ func (cl *CustomClient) Get(key string) (interface{}, error) {
 		return nil, errors.New("can not map object to CustomCacheItem model")
 	}
 
-	if item.expires > 0 && time.Now().UnixNano() > item.expires {
-		return "", errors.New("item with that key does not exist")
+	if item.expires < time.Now().UnixNano() {
+		return nil, nil
 	}
 
 	return item.data, nil
@@ -97,8 +96,8 @@ func (cl *CustomClient) GetMany(keys []string) (map[string]interface{}, []string
 	var itemNotFound []string
 
 	for _, key := range keys {
-		obj, err := cl.items.Get(key)
-		if err != nil {
+		obj, err := cl.client.Get(key)
+		if obj == nil && err == nil {
 			itemNotFound = append(itemNotFound, key)
 		}
 
@@ -113,19 +112,20 @@ func (cl *CustomClient) GetMany(keys []string) (map[string]interface{}, []string
 	return itemFound, itemNotFound, nil
 }
 
+// Read ...
 func (cl *CustomClient) Read(key string) (interface{}, error) {
-	obj, err := cl.items.Read(key)
+	obj, err := cl.client.Read(key)
 	if err != nil {
-		return nil, errors.New("item with that key does not exist")
+		return nil, err
 	}
 
 	item, ok := obj.(CustomCacheItem)
 	if !ok {
-		return nil, errors.New("can not map object to CustomCacheItem model")
+		return nil, errors.New("can not map object to CustomCacheItem model in Read method")
 	}
 
-	if item.expires > 0 && time.Now().UnixNano() > item.expires {
-		return "", errors.New("item with that key does not exist")
+	if item.expires < time.Now().UnixNano() {
+		return nil, nil
 	}
 
 	return item.data, nil
@@ -133,20 +133,24 @@ func (cl *CustomClient) Read(key string) (interface{}, error) {
 
 // Set ...
 func (cl *CustomClient) Set(key string, value interface{}, expire time.Duration) error {
-	var expires int64
-
-	if expire > 0 {
-		expires = time.Now().Add(expire).UnixNano()
-	}
-
-	if err := cl.items.Push(key, CustomCacheItem{
+	if err := cl.client.Push(key, CustomCacheItem{
 		data:    value,
-		expires: expires,
+		expires: time.Now().Add(expire).UnixNano(),
 	}); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (cl *CustomClient) Update(key string, value interface{}) error {
+	return cl.client.Update(key, value)
+}
+
+// Delete deletes the key and its value from the cache.
+func (cl *CustomClient) Delete(key string) error {
+	_, err := cl.client.Get(key)
+	return err
 }
 
 // Range ...
@@ -163,33 +167,23 @@ func (cl *CustomClient) Range(f func(key, value interface{}) bool) {
 		return f(key, item.data)
 	}
 
-	cl.items.Range(fn)
-}
-
-func (cl *CustomClient) Update(key string, value interface{}) error {
-	return cl.items.Udpate(key, value)
-}
-
-// Delete deletes the key and its value from the cache.
-func (cl *CustomClient) Delete(key string) error {
-	_, err := cl.items.Get(key)
-	return err
+	cl.client.Range(fn)
 }
 
 // GetNumberOfRecords return number of records
 func (cl *CustomClient) GetNumberOfRecords() int {
-	return cl.items.GetNumberOfKeys()
+	return cl.client.GetNumberOfKeys()
 }
 
 // GetDBSize method return redis database size
 func (cl *CustomClient) GetCapacity() (interface{}, error) {
-	return unsafe.Sizeof(cl.items), nil
+	return unsafe.Sizeof(cl.client), nil
 }
 
 // Close closes the cache and frees up resources.
 func (cl *CustomClient) Close() error {
 	cl.close <- struct{}{}
-	cl.items = linear.New(10*1024*1024, true) // 10 * 1024 * 1024 for 10 mb
+	cl.client = linear.New(10*1024*1024, true) // 10 * 1024 * 1024 for 10 mb
 
 	return nil
 }
