@@ -39,7 +39,7 @@ func (bc *BigCacheClient) Middleware(hash hash.IHash) echo.MiddlewareFunc {
 			token := c.Request().Header.Get(echo.HeaderAuthorization)
 			key := hash.SHA512(token)
 
-			if _, err := bc.Get(key); (err != nil) || (err.Error() != "ErrEntryNotFound") {
+			if _, err := bc.Get(key); (err != nil) && (err.Error() != "Entry not found") {
 				log.Printf("Can not get accesstoken from redis in redis middleware: %s", err.Error())
 				return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 			} else {
