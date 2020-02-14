@@ -1,6 +1,7 @@
 package caching
 
 import (
+	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
@@ -17,6 +18,7 @@ type BigCacheClient struct {
 	Client *bigcache.BigCache
 }
 
+// NewBigCache init new instance
 func NewBigCache(config *Config) ICaching {
 	currentSession := &BigCacheClient{nil}
 	client, err := bigcache.NewBigCache(config.BigCache)
@@ -30,6 +32,7 @@ func NewBigCache(config *Config) ICaching {
 	return currentSession
 }
 
+// Middleware for echo framework
 func (bc *BigCacheClient) Middleware(hash hash.IHash) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -50,17 +53,25 @@ func (bc *BigCacheClient) Middleware(hash hash.IHash) echo.MiddlewareFunc {
 
 // Set function will set key and value
 func (bc *BigCacheClient) Set(key string, value interface{}, expire time.Duration) error {
-	b, ok := value.(*[]byte)
-	if !ok {
-		return errors.New("value must be []byte")
+	b, err := json.Marshal(value)
+	if err != nil {
+		return errors.New("can not marshal value to []byte")
 	}
 
-	return bc.Client.Set(key, *b)
+	return bc.Client.Set(key, b)
 }
 
 // GetByKey function will get value based on the key provided
 func (bc *BigCacheClient) Get(key string) (interface{}, error) {
-	return bc.Client.Get(key)
+	b, err := bc.Client.Get(key)
+	if err != nil {
+		return nil, nil
+	}
+
+	var value interface{}
+	json.Unmarshal(b, value)
+
+	return value, nil
 }
 
 // Delete function will delete value based on the key provided
