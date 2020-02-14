@@ -42,7 +42,7 @@ func (bc *BigCacheClient) Middleware(hash hash.IHash) echo.MiddlewareFunc {
 			val, err := bc.Get(key)
 			if err != nil {
 				if err.Error() == "Entry not found" {
-					return next(c)
+					return c.NoContent(http.StatusUnauthorized)
 				}
 
 				return c.NoContent(http.StatusInternalServerError)
