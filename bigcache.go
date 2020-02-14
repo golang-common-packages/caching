@@ -39,10 +39,10 @@ func (bc *BigCacheClient) Middleware(hash hash.IHash) echo.MiddlewareFunc {
 			token := c.Request().Header.Get(echo.HeaderAuthorization)
 			key := hash.SHA512(token)
 
-			if val, err := bc.Get(key); err != nil {
+			if _, err := bc.Get(key); (err != nil) || (err.Error() != "ErrEntryNotFound") {
 				log.Printf("Can not get accesstoken from redis in redis middleware: %s", err.Error())
 				return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-			} else if val == "" {
+			} else {
 				return c.NoContent(http.StatusUnauthorized)
 			}
 
@@ -65,7 +65,7 @@ func (bc *BigCacheClient) Set(key string, value interface{}, expire time.Duratio
 func (bc *BigCacheClient) Get(key string) (interface{}, error) {
 	b, err := bc.Client.Get(key)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	var value interface{}
