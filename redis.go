@@ -18,7 +18,7 @@ type RedisClient struct {
 	Client *redis.Client
 }
 
-// NewRedis function return redis Client based on singleton pattern
+// NewRedis init new instance
 func NewRedis(config *Config) ICaching {
 	currentSession := &RedisClient{nil}
 	client, err := currentSession.connect(config.Redis)
@@ -54,7 +54,7 @@ func (r *RedisClient) connect(data Redis) (client *redis.Client, err error) {
 	return
 }
 
-// Middleware method will provide an echo middleware for Redis
+// Middleware for echo framework
 func (r *RedisClient) Middleware(hash hash.IHash) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -73,16 +73,17 @@ func (r *RedisClient) Middleware(hash hash.IHash) echo.MiddlewareFunc {
 	}
 }
 
-// GetByKey method return value based on the key provided
+// Get return value based on the key provided
 func (r *RedisClient) Get(key string) (interface{}, error) {
 	return r.Client.Get(key).Result()
 }
 
-// Set method will set key and value
+// Set new record set key and value
 func (r *RedisClient) Set(key string, value interface{}, expire time.Duration) error {
 	return r.Client.Set(key, value, expire).Err()
 }
 
+// Update new value over the key provided
 func (r *RedisClient) Update(key string, value interface{}, expire time.Duration) error {
 	_, err := r.Client.Get(key).Result()
 	if err != nil {
@@ -92,6 +93,7 @@ func (r *RedisClient) Update(key string, value interface{}, expire time.Duration
 	return r.Client.Set(key, value, expire).Err()
 }
 
+// Append new value over the key provided
 func (r *RedisClient) Append(key string, value interface{}) error {
 	b, err := json.Marshal(value)
 	if err != nil {

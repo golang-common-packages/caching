@@ -8,7 +8,7 @@ import (
 	"github.com/golang-common-packages/hash"
 )
 
-// ICaching interface caching package
+// ICaching interface for this package
 type ICaching interface {
 	Middleware(hash hash.IHash) echo.MiddlewareFunc
 	Get(key string) (interface{}, error)
@@ -26,7 +26,7 @@ const (
 	REDIS
 )
 
-// New function for Factory Pattern
+// New instance based on caching type
 func New(cachingType int, config *Config) ICaching {
 	switch cachingType {
 	case CUSTOM:

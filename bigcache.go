@@ -56,7 +56,7 @@ func (bc *BigCacheClient) Middleware(hash hash.IHash) echo.MiddlewareFunc {
 	}
 }
 
-// Set function will set key and value
+// Set new record set key and value
 func (bc *BigCacheClient) Set(key string, value interface{}, expire time.Duration) error {
 	b, err := json.Marshal(value)
 	if err != nil {
@@ -66,7 +66,7 @@ func (bc *BigCacheClient) Set(key string, value interface{}, expire time.Duratio
 	return bc.Client.Set(key, b)
 }
 
-// GetByKey return item based on the key provided
+// Get return value based on the key provided
 func (bc *BigCacheClient) Get(key string) (interface{}, error) {
 	b, err := bc.Client.Get(key)
 	if err != nil {
@@ -79,6 +79,7 @@ func (bc *BigCacheClient) Get(key string) (interface{}, error) {
 	return value, nil
 }
 
+// Update new value over the key provided
 func (bc *BigCacheClient) Update(key string, value interface{}, expire time.Duration) error {
 	_, err := bc.Client.Get(key)
 	if err != nil {

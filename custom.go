@@ -13,13 +13,13 @@ import (
 	"github.com/golang-common-packages/linear"
 )
 
-// CustomClient ...
+// CustomClient manage all custom caching action
 type CustomClient struct {
 	client *linear.Client
 	close  chan struct{}
 }
 
-// NewCustom ...
+// NewCustom init new instance
 func NewCustom(config *Config) ICaching {
 	currentSession := &CustomClient{linear.New(config.CustomCache.CacheSize, config.CustomCache.SizeChecker), make(chan struct{})}
 
@@ -52,7 +52,7 @@ func NewCustom(config *Config) ICaching {
 	return currentSession
 }
 
-// Middleware ...
+// Middleware for echo framework
 func (cl *CustomClient) Middleware(hash hash.IHash) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -71,7 +71,7 @@ func (cl *CustomClient) Middleware(hash hash.IHash) echo.MiddlewareFunc {
 	}
 }
 
-// GetByKey ...
+// Get return value based on the key provided
 func (cl *CustomClient) Get(key string) (interface{}, error) {
 	obj, err := cl.client.Read(key)
 	if err != nil {
@@ -90,7 +90,7 @@ func (cl *CustomClient) Get(key string) (interface{}, error) {
 	return item.data, nil
 }
 
-// GetMany ...
+// Get return value based on the list of keys provided
 func (cl *CustomClient) GetMany(keys []string) (map[string]interface{}, []string, error) {
 	var itemFound map[string]interface{}
 	var itemNotFound []string
@@ -112,7 +112,7 @@ func (cl *CustomClient) GetMany(keys []string) (map[string]interface{}, []string
 	return itemFound, itemNotFound, nil
 }
 
-// Set ...
+// Set new record set key and value
 func (cl *CustomClient) Set(key string, value interface{}, expire time.Duration) error {
 	if err := cl.client.Push(key, CustomCacheItem{
 		data:    value,
@@ -124,6 +124,7 @@ func (cl *CustomClient) Set(key string, value interface{}, expire time.Duration)
 	return nil
 }
 
+// Update new value over the key provided
 func (cl *CustomClient) Update(key string, value interface{}, expire time.Duration) error {
 	_, err := cl.client.Get(key)
 	if err != nil {
@@ -146,7 +147,7 @@ func (cl *CustomClient) Delete(key string) error {
 	return err
 }
 
-// Range ...
+// Range over linear data structure
 func (cl *CustomClient) Range(f func(key, value interface{}) bool) {
 	now := time.Now().UnixNano()
 
