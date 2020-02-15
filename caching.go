@@ -13,6 +13,7 @@ type ICaching interface {
 	Middleware(hash hash.IHash) echo.MiddlewareFunc
 	Get(key string) (interface{}, error)
 	Set(key string, value interface{}, expire time.Duration) error
+	Update(key string, value interface{}, expire time.Duration) error
 	Delete(key string) error
 	GetNumberOfRecords() int
 	GetCapacity() (interface{}, error)

@@ -45,10 +45,9 @@ func (bc *BigCacheClient) Middleware(hash hash.IHash) echo.MiddlewareFunc {
 					return c.NoContent(http.StatusUnauthorized)
 				}
 
+				log.Printf("Can not get accesstoken from BigCache in echo middleware: %s", err.Error())
 				return c.NoContent(http.StatusInternalServerError)
-			} else if val != "" {
-				return next(c)
-			} else {
+			} else if val == "" {
 				return c.NoContent(http.StatusUnauthorized)
 			}
 
@@ -67,7 +66,7 @@ func (bc *BigCacheClient) Set(key string, value interface{}, expire time.Duratio
 	return bc.Client.Set(key, b)
 }
 
-// GetByKey function will get value based on the key provided
+// GetByKey return item based on the key provided
 func (bc *BigCacheClient) Get(key string) (interface{}, error) {
 	b, err := bc.Client.Get(key)
 	if err != nil {
@@ -78,6 +77,33 @@ func (bc *BigCacheClient) Get(key string) (interface{}, error) {
 	json.Unmarshal(b, value)
 
 	return value, nil
+}
+
+func (bc *BigCacheClient) Update(key string, value interface{}, expire time.Duration) error {
+	_, err := bc.Client.Get(key)
+	if err != nil {
+		return err
+	}
+
+	if err := bc.Client.Delete(key); err != nil {
+		return nil
+	}
+
+	if b, err := json.Marshal(value); err != nil {
+		return bc.Client.Set(key, b)
+	}
+
+	return nil
+}
+
+// Update new value base on the key provide, With Append() you can concatenate multiple entries under the same key in an lock optimized way.
+func (bc *BigCacheClient) Append(key string, value interface{}) error {
+	b, err := json.Marshal(value)
+	if err != nil {
+		return errors.New("can not marshal value to []byte")
+	}
+
+	return bc.Client.Append(key, b)
 }
 
 // Delete function will delete value based on the key provided

@@ -59,8 +59,8 @@ func (cl *CustomClient) Middleware(hash hash.IHash) echo.MiddlewareFunc {
 			token := c.Request().Header.Get(echo.HeaderAuthorization)
 			key := hash.SHA512(token)
 
-			if val, err := cl.Read(key); err != nil {
-				log.Printf("Can not get accesstoken from redis in redis middleware: %s", err.Error())
+			if val, err := cl.Get(key); err != nil {
+				log.Printf("Can not get accesstoken from custom caching in echo middleware: %s", err.Error())
 				return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 			} else if val == "" {
 				return c.NoContent(http.StatusUnauthorized)
@@ -73,7 +73,7 @@ func (cl *CustomClient) Middleware(hash hash.IHash) echo.MiddlewareFunc {
 
 // GetByKey ...
 func (cl *CustomClient) Get(key string) (interface{}, error) {
-	obj, err := cl.client.Get(key)
+	obj, err := cl.client.Read(key)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (cl *CustomClient) GetMany(keys []string) (map[string]interface{}, []string
 	var itemNotFound []string
 
 	for _, key := range keys {
-		obj, err := cl.client.Get(key)
+		obj, err := cl.client.Read(key)
 		if obj == nil && err == nil {
 			itemNotFound = append(itemNotFound, key)
 		}
@@ -112,25 +112,6 @@ func (cl *CustomClient) GetMany(keys []string) (map[string]interface{}, []string
 	return itemFound, itemNotFound, nil
 }
 
-// Read ...
-func (cl *CustomClient) Read(key string) (interface{}, error) {
-	obj, err := cl.client.Read(key)
-	if err != nil {
-		return nil, err
-	}
-
-	item, ok := obj.(CustomCacheItem)
-	if !ok {
-		return nil, errors.New("can not map object to CustomCacheItem model in Read method")
-	}
-
-	if item.expires < time.Now().UnixNano() {
-		return nil, nil
-	}
-
-	return item.data, nil
-}
-
 // Set ...
 func (cl *CustomClient) Set(key string, value interface{}, expire time.Duration) error {
 	if err := cl.client.Push(key, CustomCacheItem{
@@ -143,8 +124,20 @@ func (cl *CustomClient) Set(key string, value interface{}, expire time.Duration)
 	return nil
 }
 
-func (cl *CustomClient) Update(key string, value interface{}) error {
-	return cl.client.Update(key, value)
+func (cl *CustomClient) Update(key string, value interface{}, expire time.Duration) error {
+	_, err := cl.client.Get(key)
+	if err != nil {
+		return err
+	}
+
+	if err := cl.client.Push(key, CustomCacheItem{
+		data:    value,
+		expires: time.Now().Add(expire).UnixNano(),
+	}); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Delete deletes the key and its value from the cache.

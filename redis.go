@@ -1,6 +1,8 @@
 package caching
 
 import (
+	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"time"
@@ -60,7 +62,7 @@ func (r *RedisClient) Middleware(hash hash.IHash) echo.MiddlewareFunc {
 			key := hash.SHA512(token)
 
 			if val, err := r.Get(key); err != nil {
-				log.Printf("Can not get accesstoken from redis in redis middleware: %s", err.Error())
+				log.Printf("Can not get accesstoken from redis in echo middleware: %s", err.Error())
 				return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 			} else if val == "" {
 				return c.NoContent(http.StatusUnauthorized)
@@ -71,14 +73,35 @@ func (r *RedisClient) Middleware(hash hash.IHash) echo.MiddlewareFunc {
 	}
 }
 
+// GetByKey method return value based on the key provided
+func (r *RedisClient) Get(key string) (interface{}, error) {
+	return r.Client.Get(key).Result()
+}
+
 // Set method will set key and value
 func (r *RedisClient) Set(key string, value interface{}, expire time.Duration) error {
 	return r.Client.Set(key, value, expire).Err()
 }
 
-// GetByKey method return value based on the key provided
-func (r *RedisClient) Get(key string) (interface{}, error) {
-	return r.Client.Get(key).Result()
+func (r *RedisClient) Update(key string, value interface{}, expire time.Duration) error {
+	_, err := r.Client.Get(key).Result()
+	if err != nil {
+		return err
+	}
+
+	return r.Client.Set(key, value, expire).Err()
+}
+
+func (r *RedisClient) Append(key string, value interface{}) error {
+	b, err := json.Marshal(value)
+	if err != nil {
+		return errors.New("can not marshal value to []byte")
+	}
+
+	var v string
+	json.Unmarshal(b, v)
+
+	return r.Client.Append(key, v).Err()
 }
 
 // Delete method delete value based on the key provided
