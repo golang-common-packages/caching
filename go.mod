@@ -7,9 +7,10 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-redis/redis v6.15.7+incompatible
 	github.com/golang-common-packages/hash v0.0.0-20200119064113-a0081e2a6db8
-	github.com/golang-common-packages/linear v0.0.0-20200214034734-772bac97e330
+	github.com/golang-common-packages/linear v0.0.0-20200214165121-ef16f82566e9
 	github.com/golang/protobuf v1.3.3 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/labstack/echo v3.3.10+incompatible // indirect
 	github.com/labstack/echo/v4 v4.1.14
 	github.com/mattn/go-isatty v0.0.12 // indirect
