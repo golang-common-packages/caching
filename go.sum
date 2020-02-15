@@ -34,6 +34,8 @@ github.com/golang-common-packages/linear v0.0.0-20200214034734-772bac97e330 h1:m
 github.com/golang-common-packages/linear v0.0.0-20200214034734-772bac97e330/go.mod h1:xDU0qN2z8iBrqFkOUYRNPs+M7KnQ0JrwzwBLQa2jWmQ=
 github.com/golang-common-packages/linear v0.0.0-20200214165121-ef16f82566e9 h1:dSyE87oLVR5bSk+8/0lqV2xXr7eRMeoJ6+DbINFqcBs=
 github.com/golang-common-packages/linear v0.0.0-20200214165121-ef16f82566e9/go.mod h1:xDU0qN2z8iBrqFkOUYRNPs+M7KnQ0JrwzwBLQa2jWmQ=
+github.com/golang-common-packages/linear v0.0.0-20200215081927-d08def5bf4c4 h1:wOs27Ixtw4lIGKeCWb2xN9dKqfqXmigZ+Fb+c5akURE=
+github.com/golang-common-packages/linear v0.0.0-20200215081927-d08def5bf4c4/go.mod h1:xDU0qN2z8iBrqFkOUYRNPs+M7KnQ0JrwzwBLQa2jWmQ=
 github.com/golang-common-packages/queue v0.0.0-20200212063414-68999c8ad3f4 h1:AMTxoiHuXwjRu+VhoxR3/nFtas6P2JDAYDf2awciEVA=
 github.com/golang-common-packages/queue v0.0.0-20200212063414-68999c8ad3f4/go.mod h1:HK4P2g1NHzyL8FoZqDWOh6oS+M6C7hEPqTCI1lXDW5k=
 github.com/golang/protobuf v1.2.0/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
