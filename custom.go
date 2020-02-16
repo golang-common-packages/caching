@@ -2,14 +2,15 @@ package caching
 
 import (
 	"errors"
-	"github.com/labstack/echo/v4/middleware"
+	"log"
 	"net/http"
 	"time"
 	"unsafe"
 
+	"github.com/labstack/echo/v4"
+
 	"github.com/golang-common-packages/hash"
 	"github.com/golang-common-packages/linear"
-	"github.com/labstack/echo/v4"
 )
 
 // CustomClient manage all custom caching action
@@ -52,58 +53,17 @@ func NewCustom(config *Config) ICaching {
 }
 
 // Middleware for echo framework
-//func (cl *CustomClient) Middleware(hash hash.IHash) echo.MiddlewareFunc {
-//	return func(next echo.HandlerFunc) echo.HandlerFunc {
-//		return func(c echo.Context) error {
-//			token := c.Request().Header.Get(echo.HeaderAuthorization)
-//			key := hash.SHA512(token)
-//
-//			if val, err := cl.Get(key); err != nil {
-//				log.Printf("Can not get accesstoken from custom caching in echo middleware: %s", err.Error())
-//				return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-//			} else if val == "" {
-//				return c.NoContent(http.StatusUnauthorized)
-//			}
-//
-//			return next(c)
-//		}
-//	}
-//}
-
-// Middleware for echo framework
 func (cl *CustomClient) Middleware(hash hash.IHash) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			var (
-				token                     string
-				url                       string
-				requestBody, responseBody []byte
-			)
+			token := c.Request().Header.Get(echo.HeaderAuthorization)
+			key := hash.SHA512(token)
 
-			middleware.BodyDump(func(c echo.Context, reqBody, resBody []byte) {
-				token = hash.SHA512(c.Request().Header.Get(echo.HeaderAuthorization))
-				url = c.Request().URL.Path
-				requestBody = reqBody
-				responseBody = resBody
-			})
-
-			_, err := cl.Get(token)
-			if err != nil {
-				c.NoContent(http.StatusInternalServerError)
-			}
-
-			key := generateKey(token + url + string(requestBody))
-			val, err := cl.Get(key)
-			if err != nil {
-				return c.NoContent(http.StatusInternalServerError)
+			if val, err := cl.Get(key); err != nil {
+				log.Printf("Can not get accesstoken from custom caching in echo middleware: %s", err.Error())
+				return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 			} else if val == "" {
-				if err := cl.Set(key, responseBody, 1*time.Minute); err != nil {
-					c.NoContent(http.StatusInternalServerError)
-				}
-
-				return next(c)
-			} else {
-				return echo.NewHTTPError(http.StatusOK, val)
+				return c.NoContent(http.StatusUnauthorized)
 			}
 
 			return next(c)
