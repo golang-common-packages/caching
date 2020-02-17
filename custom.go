@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"time"
-	"unsafe"
 
 	"github.com/labstack/echo/v4"
 
@@ -122,7 +121,7 @@ func (cl *CustomClient) GetMany(keys []string) (map[string]interface{}, []string
 
 // Set new record set key and value
 func (cl *CustomClient) Set(key string, value interface{}, expire time.Duration) error {
-	if key == "" && value == nil {
+	if key == "" || value == nil {
 		return errors.New("key and value must not empty")
 	}
 
@@ -142,7 +141,7 @@ func (cl *CustomClient) Set(key string, value interface{}, expire time.Duration)
 
 // Update new value over the key provided
 func (cl *CustomClient) Update(key string, value interface{}, expire time.Duration) error {
-	if key == "" && value == nil {
+	if key == "" || value == nil {
 		return errors.New("key and value must not empty")
 	}
 
@@ -180,12 +179,10 @@ func (cl *CustomClient) Delete(key string) error {
 
 // Range over linear data structure
 func (cl *CustomClient) Range(f func(key, value interface{}) bool) {
-	now := time.Now().UnixNano()
-
 	fn := func(key, value interface{}) bool {
 		item := value.(customCacheItem)
 
-		if item.expires > 0 && now > item.expires {
+		if item.expires > 0 && item.expires < time.Now().UnixNano() {
 			return true
 		}
 
@@ -202,7 +199,7 @@ func (cl *CustomClient) GetNumberOfRecords() int {
 
 // GetDBSize method return redis database size
 func (cl *CustomClient) GetCapacity() (interface{}, error) {
-	return unsafe.Sizeof(cl.client), nil
+	return cl.client.GetLinearCurrentSize(), nil
 }
 
 // Close closes the cache and frees up resources.
