@@ -13,7 +13,7 @@ type Config struct {
 	BigCache    bigcache.Config `json:"bigCache,omitempty"`
 }
 
-// Redis model provide info for redis config
+// Redis model for redis config
 type Redis struct {
 	Password   string `json:"password,omitempty"`
 	Host       string `json:"host,omitempty"`
@@ -21,15 +21,15 @@ type Redis struct {
 	MaxRetries int    `json:"maxRetries,omitempty"`
 }
 
-// CustomCache ...
+// CustomCache config model
 type CustomCache struct {
+	CacheSize        int64         `json:"cacheSize,omitempty"` // byte
+	CleaningEnable   bool          `json:"cleaningEnable,omitempty"`
 	CleaningInterval time.Duration `json:"cleaningInterval,omitempty"` // nanosecond
-	CacheSize        int64         `json:"cacheSize,omitempty"`        // byte
-	SizeChecker      bool          `json:"sizeChecker,omitempty"`
 }
 
-// CustomCacheItem ...
-type CustomCacheItem struct {
+// customCacheItem private model for custom cache record
+type customCacheItem struct {
 	data    interface{} `json:"data,omitempty"`
 	expires int64       `json:"expires,omitempty"`
 }
